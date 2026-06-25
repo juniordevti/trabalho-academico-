@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build and coverage outputs
+dist/
+build/
+coverage/
+
+# Private notes, reports, and test/security docs
+*.md
+!README.md
+
+# Local security/test artifacts
+sql-injection-tests.js
+backend/src/test*.sql
+backend/src/*.backup
+
+# Local databases and generated data
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor and OS files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Netlify files
+.netlify
+netlify/
+netlify.toml
+
+# Vercel files
+.vercel

@@ -1,0 +1,12 @@
+.git
+.netlify
+.vercel
+node_modules
+frontend
+documentos
+*.log
+*.md
+!README.md
+sql-injection-tests.js
+backend/src/test*.sql
+backend/src/*.backup

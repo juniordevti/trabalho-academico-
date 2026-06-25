@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmaEduk - Saldo Total</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="app-page">
+    <main class="dashboard">
+        <section class="hero-panel compact-hero">
+            <div>
+                <a class="brand-pill" href="/medicamentos" aria-label="Voltar ao painel FarmaEduk">
+                    <span class="brand-cross" aria-hidden="true"></span>
+                    <span>FarmaEduk</span>
+                </a>
+                <h1>Saldo total por aluno</h1>
+                <p>Consulte todos os alunos cadastrados e o saldo atual de FARMACOINS de cada um.</p>
+            </div>
+            <aside class="hero-actions">
+                <a class="header-action-button" href="/medicamentos" title="Voltar ao painel" aria-label="Voltar ao painel">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                </a>
+                <button id="sair-sessao" class="header-action-button danger-header-action" type="button" title="Sair" aria-label="Sair">
+                    <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                </button>
+            </aside>
+        </section>
+
+        <section class="stats-grid" aria-label="Resumo dos saldos">
+            <article class="stat-card">
+                <span>Saldo geral</span>
+                <strong id="saldo-geral">0 FC</strong>
+            </article>
+            <article class="stat-card">
+                <span>Alunos cadastrados</span>
+                <strong id="total-alunos">0</strong>
+            </article>
+            <article class="stat-card">
+                <span>Maior saldo</span>
+                <strong id="maior-saldo">0 FC</strong>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title">
+                <h2>Alunos e saldos</h2>
+                <button id="atualizar-saldos" class="btn-secondary" type="button">Atualizar</button>
+            </div>
+            <input id="busca-aluno" class="input" type="text" placeholder="Buscar aluno" autocomplete="off">
+            <p id="saldo-feedback" class="feedback" role="alert"></p>
+            <div id="lista-saldos" class="medicine-list delete-list"></div>
+        </section>
+    </main>
+
+    <script>
+        if (sessionStorage.getItem('farmaeduk_autenticado') !== 'true') {
+            window.location.href = '/login-admin';
+        }
+
+        const usuarioLogado = JSON.parse(sessionStorage.getItem('farmaeduk_usuario') || '{}');
+        const token = sessionStorage.getItem('farmaeduk_token') || '';
+        const perfilUsuario = String(usuarioLogado.perfil || usuarioLogado.tipo_usuario || '').toLowerCase();
+        const isAdmin = ['admin', 'master', 'professor'].includes(perfilUsuario);
+
+        if (!isAdmin) {
+            window.location.href = '/filtros';
+        }
+
+        const saldoGeral = document.getElementById('saldo-geral');
+        const totalAlunos = document.getElementById('total-alunos');
+        const maiorSaldo = document.getElementById('maior-saldo');
+        const listaSaldos = document.getElementById('lista-saldos');
+        const buscaAluno = document.getElementById('busca-aluno');
+        const saldoFeedback = document.getElementById('saldo-feedback');
+        const atualizarSaldos = document.getElementById('atualizar-saldos');
+        const sairSessao = document.getElementById('sair-sessao');
+        let alunos = [];
+
+        function filtrarAlunos() {
+            const termo = buscaAluno.value.trim().toLowerCase();
+            return alunos.filter((aluno) => {
+                const texto = `${aluno.nome} ${aluno.nome_usuario || ''}`.toLowerCase();
+                return !termo || texto.includes(termo);
+            });
+        }
+
+        function renderizar() {
+            const filtrados = filtrarAlunos();
+
+            if (!filtrados.length) {
+                listaSaldos.innerHTML = '<p class="empty">Nenhum aluno encontrado.</p>';
+                return;
+            }
+
+            listaSaldos.innerHTML = filtrados.map((aluno) => `
+                <article class="medicine-item">
+                    <div>
+                        <strong>${aluno.nome}</strong>
+                        <span>Usuario: ${aluno.nome_usuario || '-'}</span>
+                    </div>
+                    <b>${Number(aluno.saldo_farmacoins || 0)} FC</b>
+                </article>
+            `).join('');
+        }
+
+        async function carregarSaldos() {
+            saldoFeedback.textContent = '';
+
+            try {
+                const resposta = await fetch('/api/farmcoins/saldos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    },
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    throw new Error(erro.erro || 'Nao foi possivel carregar os saldos.');
+                }
+
+                const dados = await resposta.json();
+                alunos = dados.alunos || [];
+                saldoGeral.textContent = `${Number(dados.saldo_total || 0)} FC`;
+                totalAlunos.textContent = Number(dados.total_alunos || alunos.length);
+                maiorSaldo.textContent = `${Math.max(0, ...alunos.map((aluno) => Number(aluno.saldo_farmacoins || 0)))} FC`;
+                renderizar();
+            } catch (error) {
+                saldoFeedback.textContent = error.message;
+                alunos = [];
+                saldoGeral.textContent = '0 FC';
+                totalAlunos.textContent = '0';
+                maiorSaldo.textContent = '0 FC';
+                renderizar();
+            }
+        }
+
+        buscaAluno.addEventListener('input', renderizar);
+        atualizarSaldos.addEventListener('click', carregarSaldos);
+        sairSessao.addEventListener('click', () => {
+            sessionStorage.removeItem('farmaeduk_autenticado');
+            sessionStorage.removeItem('farmaeduk_usuario');
+            sessionStorage.removeItem('farmaeduk_token');
+            window.location.href = '/';
+        });
+
+        carregarSaldos();
+    </script>
+</body>
+</html>

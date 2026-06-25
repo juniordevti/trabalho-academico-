@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmaEduk - FARMACOINS</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="app-page">
+    <main class="dashboard">
+        <section class="hero-panel">
+            <div>
+                <a class="brand-pill" href="/medicamentos" aria-label="Atualizar painel FarmaEduk">
+                    <span class="brand-cross" aria-hidden="true"></span>
+                    <span>FarmaEduk</span>
+                </a>
+            </div>
+            <aside class="hero-actions">
+                <a class="header-action-button" href="/cadastro" title="Cadastrar aluno" aria-label="Cadastrar aluno">
+                    <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+                </a>
+                <a class="header-action-button" href="/filtros" title="Filtrar registros" aria-label="Filtrar registros">
+                    <span class="material-symbols-outlined" aria-hidden="true">filter_alt</span>
+                </a>
+                <a class="header-action-button" href="/saldo-total" title="Saldo total por aluno" aria-label="Saldo total por aluno">
+                    <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span>
+                </a>
+                <a class="header-action-button danger-header-action" href="/excluir-medicamentos" title="Excluir registros" aria-label="Excluir registros">
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                </a>
+                <button id="abrir-info" class="info-icon-button" type="button" title="Informações" aria-label="Informações">
+                    <span class="material-symbols-outlined" aria-hidden="true">info</span>
+                </button>
+                <button id="sair-sessao" class="header-action-button danger-header-action" type="button" title="Sair" aria-label="Sair">
+                    <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                </button>
+            </aside>
+        </section>
+
+        <section class="stats-grid" aria-label="Resumo de FARMACOINS">
+            <article class="stat-card">
+                <span>Saldo total</span>
+                <strong id="saldo-total">0 FC</strong>
+            </article>
+            <article class="stat-card">
+                <span>Caixas registradas</span>
+                <strong id="caixas-total">0</strong>
+            </article>
+            <article class="stat-card">
+                <span>Alunos participantes</span>
+                <strong id="alunos-total">0</strong>
+            </article>
+        </section>
+
+        <section id="admin-tools" class="actions-grid">
+            <article class="panel">
+                <div class="panel-title">
+                    <h2>Adicionar medicamento</h2>
+                </div>
+                <form id="medicamento-form" class="stack-form">
+                    <input id="id-aluno" name="idAluno" type="hidden">
+                    <input id="aluno" name="aluno" class="input" type="text" placeholder="Nome do aluno" list="alunos-cadastrados" autocomplete="off" required>
+                    <datalist id="alunos-cadastrados"></datalist>
+                    <input id="principio" name="principio" class="input" type="text" placeholder="Medicamento ou principio ativo" list="medicamentos-cadastrados" autocomplete="off" required>
+                    <datalist id="medicamentos-cadastrados"></datalist>
+
+                    <label class="date-field" for="data-entrega">
+                        <span>Data de entrega</span>
+                        <input id="data-entrega" name="dataEntrega" class="input" type="date" required>
+                    </label>
+
+                    <label class="date-field" for="data-vencimento">
+                        <span>Data do vencimento do medicamento</span>
+                        <input id="data-vencimento" name="dataVencimento" class="input" type="date" required>
+                    </label>
+
+                    <input id="caixas" name="caixas" class="input" type="number" min="1" step="1" value="1" aria-label="Quantidade de caixas" required>
+
+                    <div class="form-footer">
+                        <p id="coin-preview" class="success-note">Essa entrega gera 25 FARMACOINS.</p>
+                        <p id="form-feedback" class="feedback" role="alert"></p>
+                        <div class="button-row form-actions">
+                            <button id="submit-medicamento" class="btn-submit" type="submit">Registrar entrega</button>
+                            <button id="cancelar-edicao" class="btn-secondary" type="button" hidden>Cancelar edicao</button>
+                        </div>
+                    </div>
+                </form>
+            </article>
+
+            <article class="panel">
+                <h2>Retirar FARMACOINS</h2>
+                <form id="retirada-form" class="stack-form">
+                    <input id="retirada-aluno" class="input" type="text" placeholder="Nome do aluno" list="alunos-cadastrados" autocomplete="off" required>
+                    <input id="retirada-valor" class="input" type="number" min="1" step="1" placeholder="Valor a retirar"  aria-label="Quantidade de FARMACOINS" required>
+                    <input id="retirada-motivo" class="input" type="text" placeholder="Motivo da retirada" required>
+
+                    <div class="form-footer">
+                        <p class="danger-note">Use quando o aluno gastar FARMACOINS em eventos, brindes ou premiacoes.</p>
+                        <p id="retirada-feedback" class="feedback" role="alert"></p>
+                        <button class="btn-danger" type="submit">Registrar retirada</button>
+                    </div>
+                </form>
+            </article>
+        </section>
+
+        <dialog id="info-dialog" class="info-dialog">
+            <div class="dialog-header">
+                <h2>Informações</h2>
+                <button id="fechar-info" class="dialog-close" type="button" aria-label="Fechar informações">
+                    <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+            </div>
+            <div class="dialog-content">
+                <div class="info-highlight">
+                    <span class="material-symbols-outlined" aria-hidden="true">medication</span>
+                    <div>
+                        <span>Regra principal</span>
+                        <strong>25 FARMACOINS por caixa</strong>
+                    </div>
+                </div>
+                <div class="info-list">
+                    <p>
+                        <span class="material-symbols-outlined" aria-hidden="true">person_check</span>
+                        <span>O medicamento deve ser vinculado a um aluno cadastrado.</span>
+                    </p>
+                    <p>
+                        <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span>
+                        <span>Entradas e retiradas atualizam o saldo diretamente no banco.</span>
+                    </p>
+                    <p>
+                        <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+                        <span>Alunos consultam apenas os próprios registros na tela de filtros.</span>
+                    </p>
+                </div>
+            </div>
+        </dialog>
+
+        <section class="history-grid">
+            <article class="panel">
+                <div class="panel-title">
+                    <h2>Entregas registradas</h2>
+                    <button id="recarregar" class="btn-secondary" type="button">Atualizar</button>
+                </div>
+                <div id="lista-medicamentos" class="medicine-list"></div>
+            </article>
+
+            <article id="retiradas-panel" class="panel">
+                <h2>Retiradas registradas</h2>
+                <div id="lista-retiradas" class="medicine-list"></div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        if (sessionStorage.getItem('farmaeduk_autenticado') !== 'true') {
+            window.location.href = '/login-admin';
+        }
+
+        const usuarioLogado = JSON.parse(sessionStorage.getItem('farmaeduk_usuario') || '{}');
+        const token = sessionStorage.getItem('farmaeduk_token') || '';
+        const perfilUsuario = String(usuarioLogado.perfil || usuarioLogado.tipo_usuario || '').toLowerCase();
+        const isAdmin = ['admin', 'master', 'professor'].includes(perfilUsuario);
+
+        if (!isAdmin) {
+            window.location.href = '/filtros';
+        }
+
+        const FARMACOINS_POR_CAIXA = 25;
+        const adminTools = document.getElementById('admin-tools');
+        const retiradasPanel = document.getElementById('retiradas-panel');
+        const form = document.getElementById('medicamento-form');
+        const retiradaForm = document.getElementById('retirada-form');
+        const feedback = document.getElementById('form-feedback');
+        const retiradaFeedback = document.getElementById('retirada-feedback');
+        const lista = document.getElementById('lista-medicamentos');
+        const listaRetiradas = document.getElementById('lista-retiradas');
+        const recarregar = document.getElementById('recarregar');
+        const idAlunoInput = document.getElementById('id-aluno');
+        const alunoInput = document.getElementById('aluno');
+        const alunosDatalist = document.getElementById('alunos-cadastrados');
+        const caixasInput = document.getElementById('caixas');
+        const coinPreview = document.getElementById('coin-preview');
+        const saldoTotal = document.getElementById('saldo-total');
+        const caixasTotal = document.getElementById('caixas-total');
+        const alunosTotal = document.getElementById('alunos-total');
+        const medicamentosCadastrados = document.getElementById('medicamentos-cadastrados');
+        const submitMedicamento = document.getElementById('submit-medicamento');
+        const cancelarEdicao = document.getElementById('cancelar-edicao');
+        const sairSessao = document.getElementById('sair-sessao');
+        const infoDialog = document.getElementById('info-dialog');
+        const abrirInfo = document.getElementById('abrir-info');
+        const fecharInfo = document.getElementById('fechar-info');
+
+        let medicamentosRegistrados = [];
+        let alunosCadastrados = [];
+        let retiradas = [];
+        let resumoBanco = null;
+        let medicamentoEmEdicao = null;
+
+        function formatarData(data) {
+            if (!data) return 'Sem data';
+            const dataNormalizada = String(data).slice(0, 10);
+            const dataFormatada = new Date(`${dataNormalizada}T00:00:00`);
+            return Number.isNaN(dataFormatada.getTime()) ? 'Sem data' : dataFormatada.toLocaleDateString('pt-BR');
+        }
+
+        function dadosDaDescricao(descricao) {
+            const dados = {};
+
+            String(descricao || '').split(' | ').forEach((parte) => {
+                const [chave, valor] = parte.split(': ');
+                if (chave && valor) dados[chave.trim().toLowerCase()] = valor.trim();
+            });
+
+            return dados;
+        }
+
+        function getCaixas(medicamento) {
+            const dados = dadosDaDescricao(medicamento.descricao);
+            return Number(medicamento.quantidade || dados.caixas || 1);
+        }
+
+        function getAluno(medicamento) {
+            const dados = dadosDaDescricao(medicamento.descricao);
+            return medicamento.nome_doador || dados.doador || dados.aluno || 'Doador nao informado';
+        }
+
+        function getEntrega(medicamento) {
+            return String(medicamento.data_entrega || '').slice(0, 10) || dadosDaDescricao(medicamento.descricao).entrega || '';
+        }
+
+        function getVencimento(medicamento) {
+            const validade = medicamento.validade ? String(medicamento.validade).slice(0, 10) : '';
+            return validade || dadosDaDescricao(medicamento.descricao).vencimento || '';
+        }
+
+        function isAtivo(medicamento) {
+            return medicamento.ativo !== false;
+        }
+
+        function atualizarResumo() {
+            const ativos = medicamentosRegistrados.filter(isAtivo);
+            const caixas = ativos.reduce((total, item) => total + getCaixas(item), 0);
+            const creditos = ativos.reduce((total, item) => total + Number(item.farmcoins_creditados || getCaixas(item) * FARMACOINS_POR_CAIXA), 0);
+            const debitos = isAdmin ? retiradas.reduce((total, item) => total + Number(item.valor), 0) : 0;
+            const alunos = new Set(ativos.map(getAluno).filter(Boolean));
+            const saldo = resumoBanco ? Number(resumoBanco.saldo_total || 0) : creditos - debitos;
+            const caixasResumo = resumoBanco ? Number(resumoBanco.caixas_total || 0) : caixas;
+            const alunosResumo = resumoBanco ? Number(resumoBanco.alunos_total || 0) : alunos.size;
+
+            saldoTotal.textContent = `${saldo} FC`;
+            caixasTotal.textContent = caixasResumo;
+            alunosTotal.textContent = alunosResumo;
+        }
+
+        function atualizarPreview() {
+            const caixas = Number(caixasInput.value || 0);
+            coinPreview.textContent = `Essa entrega gera ${caixas * FARMACOINS_POR_CAIXA} FARMACOINS.`;
+        }
+
+        function escaparHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function normalizarTexto(valor) {
+            return String(valor || '').trim().toLowerCase();
+        }
+
+        function buscarAlunoPorNome(nome) {
+            const nomeNormalizado = normalizarTexto(nome);
+            return alunosCadastrados.find((item) => normalizarTexto(item.nome) === nomeNormalizado);
+        }
+
+        function preencherAlunoSelecionado() {
+            const aluno = buscarAlunoPorNome(alunoInput.value);
+            idAlunoInput.value = aluno?.id || '';
+        }
+
+        function renderizarAlunos(alunos, mostrarMensagemVazio = true) {
+            alunosCadastrados = alunos;
+            alunosDatalist.innerHTML = alunos
+                .map((aluno) => `<option value="${escaparHtml(aluno.nome)}"></option>`)
+                .join('');
+
+            if (!alunos.length && mostrarMensagemVazio) {
+                feedback.textContent = 'Nenhum aluno cadastrado. Cadastre um aluno antes de registrar uma entrega.';
+                return;
+            }
+
+            if (
+                alunos.length
+                && (
+                    feedback.textContent.includes('Nenhum aluno cadastrado')
+                    || feedback.textContent.includes('carregar alunos')
+                )
+            ) {
+                feedback.textContent = '';
+            }
+        }
+
+        function alunosDosRegistros(registros) {
+            const alunosPorChave = new Map();
+
+            registros.forEach((registro) => {
+                const id = registro.id_aluno;
+                const nome = getAluno(registro);
+
+                if (!id || !nome || nome === 'Doador nao informado') return;
+
+                alunosPorChave.set(String(id), { id, nome });
+            });
+
+            return [...alunosPorChave.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        }
+
+        async function carregarAlunos() {
+            try {
+                const resposta = await fetch('/api/alunos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    }
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    feedback.textContent = erro.erro || 'Nao foi possivel carregar alunos cadastrados';
+                    return;
+                }
+
+                renderizarAlunos(await resposta.json());
+            } catch {
+                feedback.textContent = 'Servidor indisponivel ao carregar alunos';
+            }
+        }
+
+        function atualizarSugestoesMedicamentos() {
+            const nomes = [...new Set(
+                medicamentosRegistrados
+                    .filter(isAtivo)
+                    .map((medicamento) => medicamento.nome)
+                    .filter(Boolean)
+            )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+            medicamentosCadastrados.innerHTML = nomes
+                .map((nome) => `<option value="${nome}"></option>`)
+                .join('');
+        }
+
+        function limparEdicao() {
+            medicamentoEmEdicao = null;
+            submitMedicamento.textContent = 'Registrar entrega';
+            cancelarEdicao.hidden = true;
+            form.reset();
+            caixasInput.value = 1;
+            idAlunoInput.value = '';
+            atualizarPreview();
+        }
+
+        function editarMedicamento(id) {
+            const medicamento = medicamentosRegistrados.find((item) => Number(item.id) === Number(id));
+            if (!medicamento) return;
+
+            medicamentoEmEdicao = medicamento;
+            const aluno = alunosCadastrados.find((item) => Number(item.id) === Number(medicamento.id_aluno));
+            idAlunoInput.value = aluno?.id || medicamento.id_aluno || '';
+            alunoInput.value = aluno?.nome || (getAluno(medicamento) === 'Doador nao informado' ? '' : getAluno(medicamento));
+            document.getElementById('principio').value = medicamento.principio_ativo || medicamento.nome || '';
+            document.getElementById('data-entrega').value = getEntrega(medicamento);
+            document.getElementById('data-vencimento').value = getVencimento(medicamento);
+            caixasInput.value = getCaixas(medicamento);
+            submitMedicamento.textContent = 'Salvar alteracoes';
+            cancelarEdicao.hidden = false;
+            atualizarPreview();
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderizarMedicamentos(medicamentos) {
+            medicamentosRegistrados = medicamentos;
+
+            if (!alunosCadastrados.length) {
+                const alunosEncontrados = alunosDosRegistros(medicamentos);
+
+                if (alunosEncontrados.length) {
+                    renderizarAlunos(alunosEncontrados, false);
+                }
+            }
+
+            if (!medicamentos.length) {
+                lista.innerHTML = '<p class="empty">Nenhuma entrega registrada.</p>';
+                atualizarSugestoesMedicamentos();
+                atualizarResumo();
+                return;
+            }
+
+            lista.innerHTML = medicamentos.map((medicamento) => {
+                const dados = dadosDaDescricao(medicamento.descricao);
+                const caixas = getCaixas(medicamento);
+                const statusClasse = isAtivo(medicamento) ? 'status-active' : 'status-inactive';
+                const statusTexto = isAtivo(medicamento) ? 'Ativo' : 'Inativo';
+                const botoesAdmin = isAdmin ? `
+                    <div class="item-actions">
+                        <button class="btn-secondary compact-button" type="button" data-action="editar" data-id="${medicamento.id}">Editar</button>
+                    </div>
+                ` : '';
+                return `
+                    <article class="medicine-item ${isAtivo(medicamento) ? '' : 'inactive-item'}">
+                        <div>
+                            <strong>${getAluno(medicamento)} <em class="${statusClasse}">${statusTexto}</em></strong>
+                            <span>${medicamento.principio_ativo || medicamento.nome} - ${caixas} caixa(s)</span>
+                            <small>Entrega: ${formatarData(getEntrega(medicamento))} | Validade: ${formatarData(getVencimento(medicamento))}</small>
+                        </div>
+                        <div class="item-side">
+                            <b>${Number(medicamento.farmcoins_creditados || caixas * FARMACOINS_POR_CAIXA)} FC</b>
+                            ${botoesAdmin}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            atualizarSugestoesMedicamentos();
+            atualizarResumo();
+        }
+
+        function renderizarRetiradas() {
+            if (!isAdmin) {
+                retiradasPanel.hidden = true;
+                atualizarResumo();
+                return;
+            }
+
+            if (!retiradas.length) {
+                listaRetiradas.innerHTML = '<p class="empty">Nenhuma retirada registrada.</p>';
+                atualizarResumo();
+                return;
+            }
+
+            listaRetiradas.innerHTML = retiradas.map((retirada) => `
+                <article class="medicine-item danger-item">
+                    <div>
+                        <strong>${retirada.aluno}</strong>
+                        <span>${retirada.motivo}</span>
+                        <small>${retirada.data}</small>
+                    </div>
+                    <b>-${retirada.valor} FC</b>
+                </article>
+            `).join('');
+
+            atualizarResumo();
+        }
+
+        async function carregarRetiradas() {
+            if (!isAdmin) return;
+
+            try {
+                const resposta = await fetch('/api/farmcoins/retiradas', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    }
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    retiradaFeedback.textContent = erro.erro || 'Nao foi possivel carregar retiradas';
+                    return;
+                }
+
+                const dados = await resposta.json();
+                retiradas = dados.retiradas || [];
+            } catch {
+                retiradaFeedback.textContent = 'Servidor indisponivel ao carregar retiradas';
+            }
+        }
+
+        async function carregarResumoBanco() {
+            if (!isAdmin) return;
+
+            try {
+                const resposta = await fetch('/api/farmcoins/resumo', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    }
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    feedback.textContent = erro.erro || 'Nao foi possivel carregar o resumo';
+                    return;
+                }
+
+                resumoBanco = await resposta.json();
+                if (
+                    feedback.textContent.includes('resumo')
+                    || feedback.textContent.includes('Servidor indisponivel')
+                ) {
+                    feedback.textContent = '';
+                }
+            } catch {
+                feedback.textContent = 'Servidor indisponivel ao carregar o resumo';
+            }
+        }
+
+        async function listarMedicamentos() {
+            try {
+                const resposta = await fetch('/api/medicacoes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    }
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    feedback.textContent = erro.erro || 'Nao foi possivel carregar medicamentos';
+                    return;
+                }
+
+                const medicamentos = await resposta.json();
+                await carregarResumoBanco();
+                await carregarRetiradas();
+                renderizarMedicamentos(medicamentos);
+                renderizarRetiradas();
+            } catch {
+                feedback.textContent = 'Servidor indisponivel ao carregar medicamentos';
+            }
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            feedback.textContent = '';
+
+            const dados = Object.fromEntries(new FormData(form));
+            preencherAlunoSelecionado();
+            dados.idAluno = idAlunoInput.value;
+            const caixas = Number(dados.caixas);
+
+            if (!dados.idAluno) {
+                feedback.textContent = 'Selecione um aluno cadastrado pela lista de nomes.';
+                return;
+            }
+
+            const payload = {
+                id_aluno: dados.idAluno,
+                principio_ativo: dados.principio,
+                data_entrega: dados.dataEntrega,
+                validade: dados.dataVencimento,
+                nome_doador: dados.aluno,
+                quantidade: caixas,
+                descricao: `Aluno: ${dados.aluno} | Caixas: ${caixas} | Entrega: ${dados.dataEntrega} | Vencimento: ${dados.dataVencimento}`
+            };
+
+            try {
+                const url = medicamentoEmEdicao ? `/api/medicamentos/${medicamentoEmEdicao.id}` : '/api/medicacoes';
+                const resposta = await fetch(url, {
+                    method: medicamentoEmEdicao ? 'PUT' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json();
+                    feedback.textContent = erro.erro || 'Nao foi possivel registrar';
+                    return;
+                }
+
+                limparEdicao();
+                await listarMedicamentos();
+            } catch {
+                feedback.textContent = 'Servidor indisponivel';
+            }
+        });
+
+        alunoInput.addEventListener('input', preencherAlunoSelecionado);
+        alunoInput.addEventListener('change', preencherAlunoSelecionado);
+        cancelarEdicao.addEventListener('click', limparEdicao);
+
+        lista.addEventListener('click', (event) => {
+            const botao = event.target.closest('button[data-action]');
+            if (!botao) return;
+
+            const id = botao.dataset.id;
+            if (botao.dataset.action === 'editar') editarMedicamento(id);
+        });
+
+        retiradaForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            retiradaFeedback.textContent = '';
+
+            const aluno = document.getElementById('retirada-aluno').value.trim();
+            const valor = Number(document.getElementById('retirada-valor').value);
+            const motivo = document.getElementById('retirada-motivo').value.trim();
+            const alunoCadastrado = buscarAlunoPorNome(aluno);
+
+            if (!aluno || !Number.isFinite(valor) || valor <= 0 || !motivo) {
+                retiradaFeedback.textContent = 'Preencha todos os campos da retirada.';
+                return;
+            }
+
+            if (!alunoCadastrado) {
+                retiradaFeedback.textContent = 'Selecione um aluno cadastrado pela lista de nomes.';
+                return;
+            }
+
+            try {
+                const resposta = await fetch('/api/farmcoins/retiradas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    },
+                    body: JSON.stringify({
+                        id_aluno: alunoCadastrado.id,
+                        nome_aluno: aluno,
+                        valor,
+                        motivo,
+                    })
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    retiradaFeedback.textContent = erro.erro || 'Nao foi possivel registrar retirada';
+                    return;
+                }
+
+                retiradaForm.reset();
+                document.getElementById('retirada-valor').value = 25;
+                await listarMedicamentos();
+            } catch {
+                retiradaFeedback.textContent = 'Servidor indisponivel ao registrar retirada';
+            }
+        });
+
+        caixasInput.addEventListener('input', atualizarPreview);
+        recarregar.addEventListener('click', listarMedicamentos);
+        abrirInfo.addEventListener('click', () => {
+            if (typeof infoDialog.showModal === 'function') {
+                infoDialog.showModal();
+                return;
+            }
+
+            infoDialog.setAttribute('open', '');
+        });
+        fecharInfo.addEventListener('click', () => infoDialog.close());
+        infoDialog.addEventListener('click', (event) => {
+            if (event.target === infoDialog) infoDialog.close();
+        });
+        sairSessao.addEventListener('click', () => {
+            sessionStorage.removeItem('farmaeduk_autenticado');
+            sessionStorage.removeItem('farmaeduk_usuario');
+            sessionStorage.removeItem('farmaeduk_token');
+            window.location.href = '/';
+        });
+
+        if (!isAdmin) {
+            adminTools.hidden = true;
+            retiradasPanel.hidden = true;
+        }
+
+        atualizarPreview();
+        carregarAlunos();
+        listarMedicamentos();
+    </script>
+</body>
+</html>

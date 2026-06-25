@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmaEduk - Excluir registros</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="app-page">
+    <main class="dashboard">
+        <section class="hero-panel">
+            <div>
+                <a class="brand-pill" href="/medicamentos" aria-label="Atualizar painel FarmaEduk">
+                    <span class="brand-cross" aria-hidden="true"></span>
+                    <span>FarmaEduk</span>
+                </a>
+            </div>
+            <aside class="hero-actions">
+                <a class="header-action-button" href="/medicamentos" title="Voltar ao painel" aria-label="Voltar ao painel">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                </a>
+                <button id="recarregar" class="header-action-button" type="button" title="Atualizar registros" aria-label="Atualizar registros">
+                    <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+                </button>
+                <button id="sair-sessao" class="header-action-button danger-header-action" type="button" title="Sair" aria-label="Sair">
+                    <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                </button>
+            </aside>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title">
+                <h2>Registros de medicamento</h2>
+                <strong id="resultado-total">0 registro(s)</strong>
+            </div>
+            <input id="busca-registro" class="input" type="text" placeholder="Buscar por aluno ou medicamento" autocomplete="off">
+            <p id="exclusao-feedback" class="feedback" role="alert"></p>
+            <div id="lista-exclusao" class="medicine-list delete-list"></div>
+        </section>
+    </main>
+
+    <script>
+        if (sessionStorage.getItem('farmaeduk_autenticado') !== 'true') {
+            window.location.href = '/login-admin';
+        }
+
+        const usuarioLogado = JSON.parse(sessionStorage.getItem('farmaeduk_usuario') || '{}');
+        const token = sessionStorage.getItem('farmaeduk_token') || '';
+        const perfilUsuario = String(usuarioLogado.perfil || usuarioLogado.tipo_usuario || '').toLowerCase();
+        const isAdmin = ['admin', 'master', 'professor'].includes(perfilUsuario);
+
+        if (!isAdmin) {
+            window.location.href = '/filtros';
+        }
+
+        const lista = document.getElementById('lista-exclusao');
+        const total = document.getElementById('resultado-total');
+        const feedback = document.getElementById('exclusao-feedback');
+        const buscaRegistro = document.getElementById('busca-registro');
+        const recarregar = document.getElementById('recarregar');
+        const sairSessao = document.getElementById('sair-sessao');
+        let registros = [];
+
+        function formatarData(data) {
+            if (!data) return 'Sem data';
+            const dataNormalizada = String(data).slice(0, 10);
+            const dataFormatada = new Date(`${dataNormalizada}T00:00:00`);
+            return Number.isNaN(dataFormatada.getTime()) ? 'Sem data' : dataFormatada.toLocaleDateString('pt-BR');
+        }
+
+        function escaparHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function getAluno(registro) {
+            return registro.nome_doador || registro.aluno_nome || 'Aluno nao informado';
+        }
+
+        function getMedicamento(registro) {
+            return registro.principio_ativo || registro.nome || 'Medicamento sem nome';
+        }
+
+        function filtrarRegistros() {
+            const termo = buscaRegistro.value.trim().toLowerCase();
+            return registros.filter((registro) => {
+                const texto = `${getAluno(registro)} ${getMedicamento(registro)}`.toLowerCase();
+                return !termo || texto.includes(termo);
+            });
+        }
+
+        function renderizar() {
+            const registrosFiltrados = filtrarRegistros();
+            total.textContent = `${registrosFiltrados.length} registro(s)`;
+
+            if (!registrosFiltrados.length) {
+                lista.innerHTML = '<p class="empty">Nenhum registro encontrado.</p>';
+                return;
+            }
+
+            lista.innerHTML = registrosFiltrados.map((registro) => {
+                const caixas = Number(registro.quantidade || 1);
+                const farmcoins = Number(registro.farmcoins_creditados || caixas * 25);
+
+                return `
+                    <article class="medicine-item">
+                        <div>
+                            <strong>${escaparHtml(getAluno(registro))}</strong>
+                            <span>${escaparHtml(getMedicamento(registro))} - ${caixas} caixa(s)</span>
+                            <small>Entrega: ${formatarData(registro.data_entrega)} | Validade: ${formatarData(registro.data_validade || registro.validade)}</small>
+                        </div>
+                        <div class="item-side">
+                            <b>${farmcoins} FC</b>
+                            <button class="btn-danger compact-button" type="button" data-id="${registro.id_medicamento || registro.id}">
+                                Excluir
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        async function carregarRegistros() {
+            feedback.textContent = '';
+
+            try {
+                const resposta = await fetch('/api/medicacoes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    },
+                });
+
+                if (!resposta.ok) {
+                    const erro = await resposta.json().catch(() => ({}));
+                    throw new Error(erro.erro || 'Nao foi possivel carregar registros.');
+                }
+
+                registros = await resposta.json();
+                renderizar();
+            } catch (error) {
+                feedback.textContent = error.message;
+                registros = [];
+                renderizar();
+            }
+        }
+
+        async function excluirRegistro(id) {
+            const registro = registros.find((item) => Number(item.id_medicamento || item.id) === Number(id));
+
+            if (!registro) return;
+
+            const mensagem = `Excluir definitivamente a entrega de ${getMedicamento(registro)} para ${getAluno(registro)}?`;
+            if (!confirm(mensagem)) return;
+
+            feedback.textContent = '';
+
+            try {
+                const resposta = await fetch(`/api/medicamentos/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-Perfil': usuarioLogado.perfil || '',
+                    },
+                });
+
+                const corpo = await resposta.json().catch(() => ({}));
+
+                if (!resposta.ok) {
+                    throw new Error(corpo.erro || 'Nao foi possivel excluir o registro.');
+                }
+
+                feedback.textContent = corpo.mensagem || 'Registro excluido com sucesso.';
+                registros = registros.filter((item) => Number(item.id_medicamento || item.id) !== Number(id));
+                renderizar();
+            } catch (error) {
+                feedback.textContent = error.message;
+            }
+        }
+
+        lista.addEventListener('click', (event) => {
+            const botao = event.target.closest('button[data-id]');
+            if (!botao) return;
+            excluirRegistro(botao.dataset.id);
+        });
+
+        buscaRegistro.addEventListener('input', renderizar);
+        recarregar.addEventListener('click', carregarRegistros);
+        sairSessao.addEventListener('click', () => {
+            sessionStorage.removeItem('farmaeduk_autenticado');
+            sessionStorage.removeItem('farmaeduk_usuario');
+            sessionStorage.removeItem('farmaeduk_token');
+            window.location.href = '/';
+        });
+
+        carregarRegistros();
+    </script>
+</body>
+</html>

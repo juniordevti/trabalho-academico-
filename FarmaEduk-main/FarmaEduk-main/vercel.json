@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "functions": {
+    "api/ping.js": {
+      "maxDuration": 5
+    },
+    "api/health.js": {
+      "maxDuration": 5
+    },
+    "api/login.js": {
+      "maxDuration": 10
+    },
+    "api/db-check.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/auth/login",
+      "destination": "/api/login"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/ping"
+    },
+    {
+      "source": "/login",
+      "destination": "/html/login.html"
+    },
+    {
+      "source": "/login-admin",
+      "destination": "/html/login-admin.html"
+    },
+    {
+      "source": "/login-aluno",
+      "destination": "/html/login-aluno.html"
+    },
+    {
+      "source": "/cadastro",
+      "destination": "/html/cadastro.html"
+    },
+    {
+      "source": "/medicamentos",
+      "destination": "/html/medicamentos.html"
+    },
+    {
+      "source": "/filtros",
+      "destination": "/html/filtros.html"
+    },
+    {
+      "source": "/excluir-medicamentos",
+      "destination": "/html/excluir-medicamentos.html"
+    },
+    {
+      "source": "/saldo-total",
+      "destination": "/html/saldo-total.html"
+    }
+  ]
+}

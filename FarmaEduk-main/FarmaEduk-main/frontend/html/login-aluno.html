@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Aluno - FarmaEduk</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <link rel="stylesheet" href="/css/style-login.css" />
+  </head>
+  <body data-login-perfil="aluno" data-login-destino="/filtros">
+    <div class="background-decoration"></div>
+
+    <main class="auth-card">
+      <section class="auth-form">
+        <div class="form-header">
+          <h1 class="form-title">Login Aluno</h1>
+          <p class="form-subtitle">Consulte os registros vinculados ao seu usuario</p>
+        </div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">badge</span>
+              <input
+                id="loginNome"
+                type="text"
+                class="form-input"
+                placeholder="Nome de usuario"
+                autocomplete="username"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="input-wrapper">
+              <span class="material-symbols-outlined input-icon">lock</span>
+              <input
+                id="loginSenha"
+                type="password"
+                class="form-input"
+                placeholder="Senha"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+          </div>
+
+          <p id="loginFeedback" class="feedback" role="alert"></p>
+          <button type="submit" class="submit-button">ENTRAR COMO ALUNO</button>
+        </form>
+
+        <a class="page-link" href="/">Trocar tipo de acesso</a>
+      </section>
+    </main>
+
+    <script src="/js/script-login.js"></script>
+  </body>
+</html>

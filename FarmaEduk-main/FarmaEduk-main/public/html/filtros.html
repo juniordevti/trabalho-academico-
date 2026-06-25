@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmaEduk - Filtros</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="app-page">
+    <main class="dashboard">
+        <section class="hero-panel">
+            <div>
+                <a class="brand-pill" href="/medicamentos" aria-label="Atualizar painel FarmaEduk">
+                    <span class="brand-cross" aria-hidden="true"></span>
+                    <span>FarmaEduk</span>
+                </a>
+            </div>
+            <aside class="hero-actions">
+                <a id="voltar-admin" class="header-action-button" href="/medicamentos" title="Voltar ao painel" aria-label="Voltar ao painel">
+                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                </a>
+                <button id="sair-sessao" class="header-action-button danger-header-action" type="button" title="Sair" aria-label="Sair">
+                    <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+                </button>
+            </aside>
+        </section>
+
+        <section class="stats-grid" aria-label="Resumo dos filtros">
+            <article class="stat-card">
+                <span>Registros encontrados</span>
+                <strong id="registros-total">0</strong>
+            </article>
+            <article class="stat-card">
+                <span>Caixas filtradas</span>
+                <strong id="caixas-total">0</strong>
+            </article>
+            <article class="stat-card">
+                <span>FARMACOINS filtrados</span>
+                <strong id="coins-total">0 FC</strong>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title">
+                <h2>Filtros de consulta</h2>
+            </div>
+
+            <form id="filter-form" class="filter-grid">
+                <label class="date-field" for="filtro-inicio">
+                    <span>Entrega inicial</span>
+                    <input id="filtro-inicio" class="input" type="date">
+                </label>
+
+                <label class="date-field" for="filtro-fim">
+                    <span>Entrega final</span>
+                    <input id="filtro-fim" class="input" type="date">
+                </label>
+
+                <select id="filtro-aluno-select" class="input">
+                    <option value="">Todos os alunos cadastrados</option>
+                </select>
+                <input id="filtro-aluno" class="input" type="text" placeholder="Nome do aluno" readonly>
+
+                <label class="input-field" for="filtro-tipo">
+                    <span>Tipo</span>
+                    <select id="filtro-tipo" class="input">
+                        <option value="">Todos os registros</option>
+                        <option value="ENTRADA">Entradas</option>
+                        <option value="SAIDA">Saídas</option>
+                    </select>
+                </label>
+
+                <input id="filtro-principio" class="input" type="text" placeholder="Principio ativo">
+
+                <button class="btn-submit" type="submit">Filtrar</button>
+                <button id="limpar-filtros" class="btn-secondary" type="button">Limpar</button>
+            </form>
+            <p id="filtro-feedback" class="feedback" role="alert"></p>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title">
+                <h2>Resultados</h2>
+                <strong id="resultado-total">0 registro(s)</strong>
+            </div>
+            <div id="lista-filtros" class="medicine-list"></div>
+        </section>
+    </main>
+
+    <script src="/js/script-filtros.js"></script>
+</body>
+</html>
